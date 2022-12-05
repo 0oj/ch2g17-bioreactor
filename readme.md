@@ -2,6 +2,8 @@
 # Bio Reactor
 
 ## Thingsboard
+Username: zcabgai@ucl.ac.uk
+password: btslover123456
 | keys | val |
 | --- | --- |
 | hostname | https://demo.thingsboard.io |
