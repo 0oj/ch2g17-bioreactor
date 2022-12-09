@@ -1,23 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ch2 G17</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            display: grid;
+            grid-template-columns: 1fr 8fr;
+        }
+
+        #charts {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 100%;
+            /* add space between elements */
+            gap: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            padding: 20px;
+        }
+
+        label {
+            margin: 10px 0;
+        }
+
+        input {
+            margin: 10px 0;
+        }
+
+        button {
+            margin: 10px 0;
+        }
+
+        /* make ph slider look like ph paper colour */
+        input#pref_pH[type=range]::-webkit-slider-runnable-track {
+            background: linear-gradient(to left, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
+            border-radius: 10px;
+        }
+
+        input#pref_temp[type=range]::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
+            border-radius: 10px;
+        }
+    </style>
 </head>
+
 <body>
-    <form action="/update" method="post" onsubmit="return false;">
-        <label for="temp">Temperature (25-35 C):</label>
-        <input type="range" id="temp" name="temp" min="25" max="35" value="25">
+    <form action="/prefs" method="POST">
+
+        <label for="pref_pH">pH: <span id="pref_pH_value">7.0</span></label>
+        <input type="range" name="pref_pH" id="pref_pH" step="1" min="1" max="14" value="7.0">
+        <script>
+            const pref_pH = document.getElementById('pref_pH');
+            const pref_pH_value = document.getElementById('pref_pH_value');
+            pref_pH_value.innerHTML = pref_pH.value;
+            pref_pH.oninput = function () {
+                pref_pH_value.innerHTML = this.value;
+            }
+        </script>
         <br>
-        <label for="speed">Stirring Speed (500-1500 RPM):</label>
-        <input type="range" id="speed" name="speed" min="500" max="1500" value="500">
+
+        <label for="pref_temp">Temperature: <span id="pref_temp_value">25.0</span></label>
+        <input type="range" name="pref_temp" id="pref_temp" step="0.1" min="0" max="100" value="25.0">
+        <script>
+            const pref_temp = document.getElementById('pref_temp');
+            const pref_temp_value = document.getElementById('pref_temp_value');
+            pref_temp_value.innerHTML = pref_temp.value;
+            pref_temp.oninput = function () {
+                pref_temp_value.innerHTML = this.value;
+            }
+        </script>
         <br>
-        <label for="ph">pH (3-7):</label>
-        <input type="range" id="ph" name="ph" min="3" max="7" value="3">
+
+        <label for="pref_rpm">RPM: <span id="pref_rpm_value">50</span></label>
+        <input type="range" name="pref_rpm" id="pref_rpm" step="1" min="0" max="100" value="50">
+        <script>
+            const pref_rpm = document.getElementById('pref_rpm');
+            const pref_rpm_value = document.getElementById('pref_rpm_value');
+            pref_rpm_value.innerHTML = pref_rpm.value;
+            pref_rpm.oninput = function () {
+                pref_rpm_value.innerHTML = this.value;
+            }
+        </script>
         <br>
-        <input type="submit" value="Submit">
+
+        <button type="submit">Set Preferences!</button>
+        <button type="button" onclick="window.location.href='/clearlogs'">Clear Logs</button>
     </form>
+
+    <div id="charts">
+        <div id="pH-chart" style="height: 300px; width: 100%;"></div>
+        <div id="temp-chart" style="height: 300px; width: 100%;"></div>
+        <div id="rpm-chart" style="height: 300px; width: 100%;"></div>
+    </div>
+
+
+
+
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script type="text/javascript">
+        function chart_it() {
+            const pH_dps = [];
+            const temp_dps = [];
+            const rpm_dps = [];
+
+            fetch('/log/pH')
+                .then(response => response.text())
+                .then(data => {
+                    data.split('\n').forEach(line => {
+                        if (line != '') {
+                            const [timestamp, value] = line.split(' ');
+                            const date = new Date(Number(timestamp) * 1000);
+                            pH_dps.push({
+                                x: date,
+                                y: Number(value)
+                            });
+                        }
+                    });
+
+                    const chart = new CanvasJS.Chart("pH-chart", {
+                        title: {
+                            text: "pH"
+                        },
+                        axisX: {
+                            title: "time"
+                        },
+                        axisY: {
+                            title: "pH"
+                        },
+                        data: [{
+                            type: "line",
+                            dataPoints: pH_dps
+                        }]
+                    });
+
+                    chart.render();
+                });
+
+            fetch('/log/temp')
+                .then(response => response.text())
+                .then(data => {
+                    data.split('\n').forEach(line => {
+                        if (line != '') {
+                            const [timestamp, value] = line.split(' ');
+                            const date = new Date(Number(timestamp) * 1000);
+                            temp_dps.push({
+                                x: date,
+                                y: Number(value)
+                            });
+                        }
+                    });
+
+                    const chart = new CanvasJS.Chart("temp-chart", {
+                        title: {
+                            text: "Temperature"
+                        },
+                        axisX: {
+                            title: "time"
+                        },
+                        axisY: {
+                            title: "Temperature"
+                        },
+                        data: [{
+                            type: "line",
+                            dataPoints: temp_dps
+                        }]
+                    });
+
+                    chart.render();
+                });
+
+            fetch('/log/rpm')
+                .then(response => response.text())
+                .then(data => {
+                    data.split('\n').forEach(line => {
+                        if (line != '') {
+                            const [timestamp, value] = line.split(' ');
+                            const date = new Date(Number(timestamp) * 1000);
+                            rpm_dps.push({
+                                x: date,
+                                y: Number(value)
+                            });
+                        }
+                    });
+
+                    const chart = new CanvasJS.Chart("rpm-chart", {
+                        title: {
+                            text: "RPM"
+                        },
+                        axisX: {
+                            title: "time"
+                        },
+                        axisY: {
+                            title: "RPM"
+                        },
+                        data: [{
+                            type: "line",
+                            dataPoints: rpm_dps
+                        }]
+                    });
+
+                    chart.render();
+                });
+        }
+
+        setInterval(chart_it, 1000);
+    </script>
 </body>
+
 </html>

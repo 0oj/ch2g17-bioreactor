@@ -1,21 +1,27 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Dec  5 01:20:21 2022
-
-@author: Sahil
-"""
-
 import requests
+
+USERNAME = "zcabgai@ucl.ac.uk"
+PASSWORD = "btslover123456"
+
 THINGSBOARD_URL = 'https://demo.thingsboard.io'
-DEVICE_ACCESS_TOKEN = 'XfgfJXrjY8PhThCamEdq'
-url = "https://demo.thingsboard.io/api/v1/XfgfJXrjY8PhThCamEdq/telemetry"
-data = {
-        "temp from sensor" : 25,
-        "pH" : 7.5,
-        "rpm": 500
-        }
-header = {
+URL = f"{THINGSBOARD_URL}/api/auth/login"
+
+PAYLOAD = {
+    "username": USERNAME,
+    "password": PASSWORD
+}
+
+HEADERS = {
     'Content-Type': 'application/json'
-    }
-response = requests.post(url, json = data, headers = header)
-print(response.status_code)
+}
+
+response = requests.post(URL, json=PAYLOAD, headers=HEADERS)
+
+JWT_TOKEN = response.json()["token"]
+print(JWT_TOKEN)
+
+'''
+curl -v -X POST https://demo.thingsboard.io/api/auth/login \
+--header "Content-Type:application/json" \
+--data '{"username":"zcabgai@ucl.ac.uk","password": "btslover123456"}'
+'''
