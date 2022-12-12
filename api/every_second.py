@@ -20,7 +20,7 @@ def log():
 while True:
     try:
         log()
-        cheeky_write()
+        # cheeky_write()
         time.sleep(1)
     except KeyboardInterrupt:
         print("\nbye")
